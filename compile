@@ -1,0 +1,18 @@
+gcc test.c -o test -I "/usr/include/libnl3"  $(pkg-config --cflags --libs libnl-3.0)
+
+gcc test.c -o test $(pkg-config --cflags --libs libnl-3.0)
+
+gcc test.c -o test $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -llibnl-route-3.so.200
+
+/usr/lib/x86_64-linux-gnu/libnl-route-3.so.200
+/usr/lib/x86_64-linux-gnu/libnl-route-3.so
+
+
+gcc test.c -o test $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200
+
+gcc link.c -o link $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200
+
+gcc -g link.c -o link $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200
+
+
+gcc -g link.c run.c -o link $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200
