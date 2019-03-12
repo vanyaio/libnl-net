@@ -18,3 +18,6 @@ sudo ip link del mybr
 
 
 ip netns exec 8962 ip address show
+
+https://ops.tips/blog/using-network-namespaces-and-bridge-to-isolate-servers/#creating-and-configuring-the-bridge-device
+

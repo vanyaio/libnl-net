@@ -22,7 +22,7 @@ int childFunc(void* arg){
   if (veth == NULL)
     printf("null2\n");
 	//concat(4, "10.1.", i_str, ".2", "/24")
-  default_addr_set(veth, concat(3, "10.1.2.", i_str, "/24"));
+  default_addr_set2(veth, concat(3, "10.0.0.", i_str, "/16"));
 
   system("ip address show");
   while(1);
@@ -35,7 +35,7 @@ void script_inner(){
 	struct rtnl_link* br = my_link_get_by_name("mybr");
 	default_bridge_up(br);
   br = my_link_get_by_name("mybr");
-  default_addr_set(br, "192.168.1.10/24");
+  //default_addr_set(br, "192.168.1.10/24");
 
   int ns_count = 2;
   pid_t* nss = malloc(ns_count * sizeof(pid_t));
@@ -60,8 +60,7 @@ void script_inner(){
     veth = my_link_get_by_name(concat(2, "myveth", i_str));
   	if (veth == NULL)
   		printf("null2\n");
-		//concat(3, "10.1.1.", i_str, "/24")
-    default_addr_set(veth, concat(4, "10.1.", i_str, ".1", "/24"));
+    default_addr_set2(veth, concat(3, "10.1.0.", i_str, "/16"));
 
     struct nl_cache *cache;
   	struct nl_sock *sk1;
@@ -82,7 +81,7 @@ void script_inner(){
 
 }
 int main(int c, char* argv[]){
-	debug6();
+	script_inner();
 
 	/*
     	pid_t child_pid = clone(childFunc,

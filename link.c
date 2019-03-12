@@ -162,12 +162,12 @@ void default_addr_set2(struct rtnl_link* link, const char* addr_str){
 	struct rtnl_addr* rtnl_addr = rtnl_addr_alloc();
 	int ifin = rtnl_link_get_ifindex(link);
 	int set_ifindex = rtnl_addr_set_ifindex(rtnl_addr, ifin);
-	int set_local = rtnl_addr_set_local(rtnl_addr, local_addr);
-	int set_peer = rtnl_addr_set_peer(rtnl_addr, local_addr);
-	
+	int set_local = rtnl_addr_set_local(rtnl_addr, *local_addr);
+	//int set_peer = rtnl_addr_set_peer(rtnl_addr, local_addr);
+
 	int addr_add = rtnl_addr_add(get_route_socket(), rtnl_addr, 0);
 
-	printf("parse:%d ifin:%d local:%d add:%d peer:%d\n", parse, set_ifindex, set_local, addr_add, set_peer);
+	//printf("parse:%d ifin:%d local:%d add:%d\n", parse, set_ifindex, set_local, addr_add);
 
 
 }
