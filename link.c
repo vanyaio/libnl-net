@@ -67,6 +67,36 @@ void print_oper(struct rtnl_link* link){
 	printf("oper: %s\n", oper_str);
 }
 
+void print_bridge(struct rtnl_link* link){
+	print_flags(link);
+	print_oper(link);
+
+	uint8_t st1 = rtnl_link_get_linkmode(link);
+	char* str = rtnl_link_mode2str(st1, print_buff, PRINT_BUFF_SIZE);
+	printf("mode: %s\n", str);
+
+	uint8_t st2 = rtnl_link_get_carrier(link);
+	str = rtnl_link_carrier2str(st2, print_buff, PRINT_BUFF_SIZE);
+	printf("carrier: %s\n", str);
+
+	int port = rtnl_link_bridge_get_port_state(link);
+	printf("port: %d\n",port);
+
+	printf("family: %d\n", rtnl_link_get_family(link));
+	printf("mtu: %d\n", rtnl_link_get_mtu(link));
+	printf("tx: %d\n", rtnl_link_get_txqlen(link));
+	printf("linkmode: %u\n", rtnl_link_get_linkmode(link));
+	printf("qdisc: %s\n", rtnl_link_get_qdisc(link));
+	printf("type: %s\n", rtnl_link_get_type(link));
+	printf("prom: %u\n", rtnl_link_get_promiscuity(link));
+	printf("ext: %d\n", rtnl_link_bridge_has_ext_info(link));
+	printf("addr: %p\n", (void*)rtnl_link_get_addr(link));
+	printf("br_addr: %p\n", (void*)rtnl_link_get_broadcast(link));
+	printf("group: %u\n", rtnl_link_get_group(link));
+	printf("art: %u\n", rtnl_link_get_arptype(link));
+	printf("_____\n");
+}
+
 void print_addr(struct nl_addr* addr){
 	printf("%s\n", nl_addr2str(addr, print_buff, PRINT_BUFF_SIZE));
 }
@@ -95,25 +125,20 @@ void default_bridge_up(struct rtnl_link* link){
 									0);
 }
 
-
-
 char* concat(int count, ...)
 {
     va_list ap;
     int i;
 
-    // Find required length to store merged string
-    int len = 1; // room for NULL
+    int len = 1;
     va_start(ap, count);
     for(i=0 ; i<count ; i++)
         len += strlen(va_arg(ap, char*));
     va_end(ap);
 
-    // Allocate memory to concat strings
     char *merged = calloc(sizeof(char),len);
     int null_pos = 0;
 
-    // Actually concatenate strings
     va_start(ap, count);
     for(i=0 ; i<count ; i++)
     {
@@ -125,37 +150,8 @@ char* concat(int count, ...)
 
     return merged;
 }
-void default_addr_set(struct rtnl_link* link, const char* addr){//(struct rtnl_link* link){
-	/*
-	struct nl_addr** addr = malloc(sizeof(void*));
-	nl_addr_parse("10.1.1.1/24", AF_INET, addr);
-	rtnl_link_set_addr(link, *addr);
 
-	rtnl_link_change(get_route_socket(), link,
-									link,
-									0);
-	*/
-
-	/*
-	char* command = malloc(1000);
-	//ip addr add 10.1.1.1/24 dev ya1
-	strcpy(command, "ip addr add ");
-	strcpy(command, addr);
-	strcpy(command, " dev ");
-	strcpy(command, rtnl_link_get_name(link));
-	system(command);
-	*/
-	char* link_name = rtnl_link_get_name(link);
-	if (link_name == NULL)
-		printf("alarm\n");
-	sleep(3);
-	printf("%s\n", link_name);
-	sleep(3);
-	char* res = concat(4,"ip addr add ", addr, " dev ", link_name);
-	system(res);
-}
-
-void default_addr_set2(struct rtnl_link* link, const char* addr_str){
+void default_addr_set(struct rtnl_link* link, const char* addr_str){
 	struct nl_addr** local_addr = malloc(sizeof(void*));
 	int parse = nl_addr_parse(addr_str, AF_INET, local_addr);
 
@@ -163,12 +159,8 @@ void default_addr_set2(struct rtnl_link* link, const char* addr_str){
 	int ifin = rtnl_link_get_ifindex(link);
 	int set_ifindex = rtnl_addr_set_ifindex(rtnl_addr, ifin);
 	int set_local = rtnl_addr_set_local(rtnl_addr, *local_addr);
-	//int set_peer = rtnl_addr_set_peer(rtnl_addr, local_addr);
 
 	int addr_add = rtnl_addr_add(get_route_socket(), rtnl_addr, 0);
-
-	//printf("parse:%d ifin:%d local:%d add:%d\n", parse, set_ifindex, set_local, addr_add);
-
 
 }
 

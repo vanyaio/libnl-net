@@ -90,6 +90,7 @@ void debug4(){
 	print_oper(br);
 }
 
+/*
 void debug5(){
   int code = rtnl_link_veth_add(get_route_socket(), "myveth", "myveth_s", getpid());
 	printf("adding code: %d\n", code);
@@ -100,7 +101,7 @@ void debug5(){
   veth = my_link_get_by_name("myveth");
 	if (veth == NULL)
 		printf("null2\n");
-  default_addr_set(veth, "10.1.1.1/24");
+  default_addr_set2(veth, "10.1.1.1/24");
 }
 
 void debug6(){
@@ -111,6 +112,24 @@ void debug6(){
 
   default_addr_set2(br, "10.10.10.1/24");
 }
+
+void debug7() {
+	struct rtnl_link* br1 = my_link_get_by_name("mybr1");
+	if (br1 == NULL)
+		printf("error\n");
+	print_bridge(br1);
+
+  int code = rtnl_link_bridge_add(get_route_socket(), "mybr2");
+	struct rtnl_link* br2 = my_link_get_by_name("mybr2");
+
+	print_bridge(br2);
+	default_addr_set2(br2, "10.0.0.1/16");
+	br2 = my_link_get_by_name("mybr2");
+	default_bridge_up(br2);
+  br2 = my_link_get_by_name("mybr2");
+	print_bridge(br2);
+}
+*/
 #endif
 
 

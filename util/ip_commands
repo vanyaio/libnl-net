@@ -1,0 +1,49 @@
+sudo ip link del myveth
+sudo ip link del mybr
+
+sudo ip link add ya1 type veth peer name ya2
+sudo ip addr add 10.1.1.1/24 dev ya1
+sudo ip link set ya1 down
+
+ip address show
+sudo ifconfig ya1 10.1.1.1/24 up
+ping 10.1.1.1
+
+sudo ip link add name mybr type bridge
+
+
+sudo ip link del myveth
+sudo ip link del mybr
+
+
+
+ip netns exec 8962 ip address show
+
+https://ops.tips/blog/using-network-namespaces-and-bridge-to-isolate-servers/#creating-and-configuring-the-bridge-device
+
+
+
+ip netns add ns1
+ip netns add ns2
+
+ip link add myveth1 type veth peer name myveth_ns1
+ip link set myveth_ns1 netns ns1
+ip addr add 10.1.1.1/24 dev myveth1
+ip netns exec ns1 ip addr add 10.1.1.1/24 dev myveth_ns1
+ip link set myveth1 up
+ip netns exec ns1 ip link set myveth_ns1 up
+
+
+ip link add myveth2 type veth peer name myveth_ns2
+ip link set myveth_ns2 netns ns2
+ip addr add 10.1.1.1/24 dev myveth2
+ip netns exec ns2 ip addr add 10.1.1.1/24 dev myveth_ns2
+ip link set myveth2 up
+ip netns exec ns2 ip link set myveth_ns2 up
+
+ip link add name mybr type bridge
+ip addr add 10.1.1.1/24 dev mybr
+ip link set mybr up
+
+ip link set myveth1 master mybr
+ip link set myveth2 master mybr
