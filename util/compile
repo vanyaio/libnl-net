@@ -16,3 +16,10 @@ gcc -g link.c -o link $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/li
 
 
 gcc -g link.c run.c -o link $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200
+
+
+
+
+
+
+gcc -g ../link.c main.c -o main $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200

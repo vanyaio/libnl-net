@@ -34,22 +34,22 @@ int _i;
 int childFunc(void* arg){
 	sleep(2);
 	char* name = get_veth_name(_i, IN_NS);
-  struct rtnl_link* veth = my_link_get_by_name(name);
-  if (veth == NULL)
-    printf("null1\n");
-  default_veth_up(veth);
+	struct rtnl_link* veth = my_link_get_by_name(name);
+	if (veth == NULL)
+		printf("null1\n");
+	default_veth_up(veth);
 
-  veth = my_link_get_by_name(name);
-  if (veth == NULL)
-    printf("null2\n");
-  default_addr_set(veth, get_veth_addr(_i, IN_NS));
+	veth = my_link_get_by_name(name);
+		if (veth == NULL)
+	printf("null2\n");
+	default_addr_set(veth, get_veth_addr(_i, IN_NS));
 
 
 	if (fork() == 0)
 		execvp(_argv[0], _argv);
 
 
-  while(1);
+	while(1);
 }
 
 

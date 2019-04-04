@@ -23,27 +23,18 @@ https://ops.tips/blog/using-network-namespaces-and-bridge-to-isolate-servers/#cr
 
 
 
-ip netns add ns1
-ip netns add ns2
-
-ip link add myveth1 type veth peer name myveth_ns1
-ip link set myveth_ns1 netns ns1
-ip addr add 10.1.1.1/24 dev myveth1
-ip netns exec ns1 ip addr add 10.1.1.1/24 dev myveth_ns1
-ip link set myveth1 up
-ip netns exec ns1 ip link set myveth_ns1 up
 
 
-ip link add myveth2 type veth peer name myveth_ns2
-ip link set myveth_ns2 netns ns2
-ip addr add 10.1.1.1/24 dev myveth2
-ip netns exec ns2 ip addr add 10.1.1.1/24 dev myveth_ns2
-ip link set myveth2 up
-ip netns exec ns2 ip link set myveth_ns2 up
 
-ip link add name mybr type bridge
-ip addr add 10.1.1.1/24 dev mybr
-ip link set mybr up
+sudo systemctl restart ssh
+ivan@ivan-System-Product-Name:/etc/init.d$ sudo systemctl status ssh
+sudo netstat -tulpn | grep "LISTEN"
+sudo gedit /etc/ssh/sshd_config
 
-ip link set myveth1 master mybr
-ip link set myveth2 master mybr
+/etc/systemd/system/sshd.service
+
+
+sudo systemctl restart sshd-second.service
+sudo gedit /etc/ssh/sshd-second_config
+sudo gedit /etc/systemd/system/sshd-second.service
+nsexec ns1 /usr/sbin/sshd -D -f /etc/ssh/sshd-second_config $SSHD_OPTS
