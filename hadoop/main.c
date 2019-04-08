@@ -1,6 +1,8 @@
 #include "../link.h"
 #include "../debug.h"
 #include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #define STACK_SIZE (1024 * 1024)
 static char child_stack[STACK_SIZE];
@@ -25,15 +27,21 @@ extern int redir_io(const char* path, int is_out);
 int set_devices_ns();
 int set_hadoop_vars();
 int set_slave_daemons();
+void print_envs();
 int slave(void* arg){
-	read(master_pipe[0], pipe_buf, 2);	
+	read(master_pipe[0], pipe_buf, 2);
 
+	char hname[] = "hadoop-dns-ns";
+	sethostname(hname, strlen(hname));
 	set_devices_ns();
 	set_hadoop_vars();
 	set_slave_daemons();
 
 	printf("slave is set \n");
 	sleep(5);
+	//
+	print_envs();
+	//
 	write(slave_pipe[1], "1", 2);
 
 	sleep(1000000);
@@ -46,29 +54,33 @@ int run_task();
 int master(void* arg){
 	read(setdevs_pipe[0], pipe_buf, 2);
 
+	char hname[] = "hadoop-dns";
+	sethostname(hname, strlen(hname));
 	set_devices_ns();
 	set_slave_home();
 	set_master_daemons();
-	
+
 	printf("master is set \n");
 	sleep(5);
-	write(master_pipe[1], "1", 2); 
+	write(master_pipe[1], "1", 2);
 
 	//printf("master's name\n");
-	read(setdevs_pipe[1], pipe_buf, 2);
-	printf("run task? \n");
-	getchar();
-	sleep(20);
+	read(slave_pipe[0], pipe_buf, 2);
+	//
+	print_envs();
+	//
 	run_task();
 	sleep(100000000);
 }
 
 
 int set_devices();
+extern char* concat(int count, ...);
+int euid_pipe[2];
 int user_ns_func(void* arg){
-	printf("Changed euid? \n");//echo '0 1000 1' > /proc/4713/uid_map
-	getchar();
-	
+	read(euid_pipe[0], pipe_buf, 2);
+	printf("euid %ld\n", getuid());//echo '0 1000 1' > /proc/4713/uid_map
+
 	pipe(setdevs_pipe);
 	pipe(master_pipe);
 	pipe(slave_pipe);
@@ -76,27 +88,37 @@ int user_ns_func(void* arg){
 	_i = 0;
 	ns_pid1 = clone(slave,
 			child_stack + STACK_SIZE,
-			CLONE_NEWNET | SIGCHLD,
+			CLONE_NEWNET | CLONE_NEWUTS | SIGCHLD,
 			NULL);
 	_i = 1;
 	ns_pid2 = clone(master,
 			child_stack + STACK_SIZE,
-			CLONE_NEWNET | SIGCHLD,
+			CLONE_NEWNET | CLONE_NEWUTS | SIGCHLD,
 			NULL);
 	set_devices();
 
-	write(setdevs_pipe[1], "1", 2); 
-	
+	write(setdevs_pipe[1], "1", 2);
+
 	sleep(100000);
 }
 
 int main(int argc, char* argv[]){
+	system("jps | python3 ../util/clean_hadoop_daemons.py");
+
+	pipe(euid_pipe);
+
 	pid_t ns_pid = clone(user_ns_func,
 			child_stack + STACK_SIZE,
 			CLONE_NEWUSER | CLONE_NEWNET | SIGCHLD,
 			NULL);
 
-	printf("ns_pid: %d \n", ns_pid);
+	char pid_str[100];
+	sprintf(pid_str, "%d", ns_pid);
+	char* echo = concat(3, "echo \'0 1000 1\' > /proc/", pid_str, "/uid_map");
+	printf("%s\n", echo);
+	system(echo);
+	write(euid_pipe[1], "1", 2);
+
 	sleep(1000000);
 	/*
 	int euid = geteuid();
@@ -130,7 +152,7 @@ int set_devices(){
 	default_addr_set(br, "10.0.0.1/16");
 	*/
 
-	printf("ueid %ld \n", (long) geteuid());
+	printf("euid %ld \n", (long) geteuid());
 	system("ip link add name mybr type bridge");
 	system("ip addr add 10.0.0.1/16 dev mybr");
 	system("ip link set mybr up");
@@ -218,23 +240,34 @@ int set_devices_ns(){
 #define slave_home "/home/ivan/slave-home";
 int set_hadoop_vars(){
 	setenv("JAVA_HOME", "/usr/lib/jvm/java-11-oracle", 1);
+
 	setenv("HADOOP_INSTALL", "/home/ivan/slave-home", 1);
+	setenv("HADOOP_HOME", "/home/ivan/slave-home", 1);
+	setenv("HADOOP_PREFIX", "/home/ivan/slave-home", 1);
+
 	setenv("PATH", "/home/ivan/bin:/home/ivan/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/lib/jvm/java-11-oracle/bin:/usr/lib/jvm/java-11-oracle/db/bin:/usr/lib/jvm/java-11-oracle/bin:/home/ivan/slave-home/bin:/home/ivan/slave-home/sbin", 1);
 	setenv("HADOOP_MAPRED_HOME", "/home/ivan/slave-home", 1);
 	setenv("HADOOP_COMMON_HOME", "/home/ivan/slave-home", 1);
 	setenv("HADOOP_HDFS_HOME", "/home/ivan/slave-home", 1);
 	setenv("YARN_HOME", "/home/ivan/slave-home", 1);
 	setenv("HADOOP_COMMON_LIB_NATIVE_DIR", "/home/ivan/slave-home/lib/native", 1);
-	setenv("HADOOP_OPTS", "\"-Djava.library.path=/home/ivan/slave-home/lib\"", 1);
-
+	//setenv("HADOOP_OPTS", "\"-Djava.library.path=/home/ivan/slave-home/lib\"", 1);
+	//setenv("HADOOP_OPTS","-Djava.library.path=/home/ivan/hadoop/lib");
 	printf("vars are set\n");
 	return 1;
 }
-
+void print_envs(){
+	system("echo $JAVA_HOME");
+	system("echo $HADOOP_INSTALL");
+	system("echo $HADOOP_CONF_DIR");
+	system("echo $PATH");
+}
 int set_slave_home(){
 	system("rm -rf /home/ivan/slave-home");
 	system("mkdir /home/ivan/slave-home");
 	system("cp -r /home/ivan/hadoop/* /home/ivan/slave-home");
+	system("rm -rf /home/ivan/slave-home/data/datanode/*");
+	system("rm -rf /home/ivan/slave-home/data/namenode/*");
 	system("rm -rf /home/ivan/slave-home/etc/hadoop/hdfs-site.xml");
 	system ("cp hdfs-site.xml /home/ivan/slave-home/etc/hadoop");
 	printf("slave home is set\n");
@@ -245,7 +278,7 @@ int set_slave_daemons(){
 	int fd = dup(2);
 	int mode = 2;
 
-	redir_io("logs/slave-datanode", mode);
+	//redir_io("logs/slave-datanode", mode);
 	system("/home/ivan/slave-home/bin/hadoop datanode &");
 	redir_io("logs/slave-nodemanager", mode);
 	system("/home/ivan/slave-home/bin/yarn nodemanager &");
@@ -288,8 +321,24 @@ int set_master_daemons(){
 }
 
 int run_task(){
+	printf("SAFEMODE GETTING OFF\n\n\n\n\n");
+	system("hdfs dfsadmin -safemode leave");
+	if (fork() == 0){
+		//system("chromium-browser --no-sandbox");
+		sleep(100000000);
+		exit(0);
+	}
+	sleep(5);
 	printf("starting task! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-	system("yarn jar /home/ivan/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar pi 2 5");
+	//system("yarn jar /home/ivan/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar pi 2 5");
+	//system("hdfs dfs -mkdir out");
+
+	//system("yarn jar /home/ivan/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar wordcount books out4");
+	//system("hdfs dfs -ls /user/root/out3");
+	//system("hdfs dfs -cat /user/root/out5/part-r-00000");
+
+	//system("hdfs dfsadmin -report");
+	system("/bin/sh");
 }
 
 
