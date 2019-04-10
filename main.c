@@ -2,11 +2,13 @@
 #include "debug.h"
 #include <errno.h>
 
+conf_file* config;
 
 int main_node(void* arg){
+	//?get node_entry
 	read_setdevs_pipe()
-	set_devices_node(arg)
-	execvp(conf_node_task(arg), conf_node_task_arg(arg));
+	set_devices_node(node_entry)
+	execvp(conf_node_task(node_entry), conf_node_task_arg(node_entry));
 }
 
 int main_userns(void* arg){
@@ -16,16 +18,16 @@ int main_userns(void* arg){
 	for (int i = 0; i < conf_nodes_count; i++){
 		node_pids[i] = clone(main_node, CLONE_NEWNET, conf_node_arg(i));
 
-	set_devices();
+	set_devices(conf_nodes_count);
 
 	write_setdevs_pipe();
 
-	execvp(conf_task, conf_task_arg(arg, node_pids));
+	execvp(conf_reaper, conf_reaper_arg(node_pids));
 }
 
 int main(int c, char* argv[]){
-	clean_cluster?
-
+	conf_alloc(config, argv[1]);
+	
 	clone(main_userns, CLONE_NEWUSER | CLONE_NEWNET, argv)
 
 	set_root();
