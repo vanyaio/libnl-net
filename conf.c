@@ -33,28 +33,29 @@ int conf_alloc(struct conf_file** conf, FILE* fp){
   return 0;
 }
 
-int conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
+char* conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
   char* argv[];
   argv = malloc((conf->node_cnt + 2) * sizeof(char*));
   argv[0] = conf->reaper;
 
   char* buff[conf->node_cnt];
   for (int i = 1; i <= conf->node_cnt; i++){
-    #define ENOUGH 12
-    buff[i-1] = malloc(ENOUGH * sizeof(char));
+    buff[i-1] = malloc(BUFF_SIZE * sizeof(char));
     argv[i] = sprintf(buff[i-1], "%d", node_pids[i-1]);
   }
 
   argv[conf->node_cnt + 1] = NULL;
+  return argv;
 }
 
-int conf_node_task_arg(struct node_entry* entry){
+char* conf_node_task_arg(struct node_entry* entry){
   char* argv[];
-  argv = malloc(2 * sizeof(char*));
+  argv = malloc(4 * sizeof(char*));
   argv[0] = entry->task;
   argv[1] = entry->ip_addr;
   argv[2] = entry->hostname;
-  
+  argv[3] = NULL;
+  return argv;
 }
 
 

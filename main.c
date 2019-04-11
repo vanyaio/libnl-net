@@ -1,16 +1,15 @@
-#include "link.h"
-#include "debug.h"
-#include <errno.h>
 #include "conf.h"
 #include "netdevs.h"
+#include "buffs.h"
 
 conf_file* config;
 int node_num;
+int set_root();
 
 int main_node(void* arg){
 	struct node_entry* this_node_entry = &(config->entries[node_num]);
 	read_setdevs_pipe()
-	set_devices_node(this_node_entry)
+	netdevs_set_node(this_node_entry, node_num)
 	execvp(this_node_entry->task, conf_node_task_arg(node_entry));
 }
 
@@ -23,7 +22,7 @@ int main_userns(void* arg){
 		node_pids[i] = clone(main_node, CLONE_NEWNET, null);
 	}
 
-	set_devices(conf_nodes_count);
+	netdevs_set_devs(conf_nodes_count, pid_t* node_pids);
 
 	write_setdevs_pipe();
 
@@ -33,11 +32,24 @@ int main_userns(void* arg){
 int main(int c, char* argv[]){
 	conf_alloc(&config, argv[1]);
 
-	clone(main_userns, CLONE_NEWUSER | CLONE_NEWNET, argv)
+	ns_pid = clone(main_userns, CLONE_NEWUSER | CLONE_NEWNET, argv)
 
-	set_root();
+	set_root(ns_pid);
+
 	write_euid_pipe()
 
 	//somehow get exit code of main_userns
 	return 0;
+}
+
+
+
+
+int set_root(pid_t ns_pid){
+	char pid_str[BUFF_SIZE];
+	sprintf(pid_str, "%d", ns_pid);
+	char euid_str[BUFF_SIZE];
+	sprintf(euid_str, "%d", geteuid());
+	char* echo = concat(5, "echo \'0 ", euid_str, " 1\' > /proc/", pid_str, "/uid_map");
+	system(echo);
 }

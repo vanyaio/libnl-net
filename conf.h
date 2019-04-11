@@ -1,6 +1,8 @@
 #ifndef CONF_H
 #define CONF_H
 
+#include "buffs.h"
+
 #define NODE_ENTRY_FIELDS 3
 struct node_entry{
   char* ip_addr;
@@ -14,6 +16,7 @@ struct conf_file{
 };
 
 int conf_alloc(struct conf_file** conf, FILE* fp);
-int conf_reaper_arg(struct conf_file* conf, pid_t* node_pids);
-conf_node_task_arg(node_entry)
+char* conf_reaper_arg(struct conf_file* conf, pid_t* node_pids);
+char* conf_node_task_arg(struct node_entry* entry);
+
 #endif
