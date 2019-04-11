@@ -19,7 +19,7 @@ int read_euid_pipe(){
 }
 
 int write_setdevs_pipe(){
-  write(setdevs_pipe[1], "1", 2);
+  write(setdevs_pipe[1], "2", 2);
   return 1;
 }
 int read_setdevs_pipe(){
@@ -32,7 +32,7 @@ int read_set_node_pipe(){
   return 1;
 }
 int write_set_node_pipe(){
-  write(set_node_pipe[1], "1", 2);
+  write(set_node_pipe[1], "3", 2);
   return 1;
 }
 
@@ -41,6 +41,6 @@ int read_exec_node_pipe(){
   return 1;
 }
 int write_exec_node_pipe(){
-  write(exec_node_pipe[1], "1", 2);
+  write(exec_node_pipe[1], "4", 2);
   return 1;
 }

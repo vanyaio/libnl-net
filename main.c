@@ -5,13 +5,18 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sched.h>
-
+//gcc -g -O0 link.c conf.c pipe.c netdevs.c main.c -o main $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200
+//gdb --args main apps/config
 struct conf_file* config;
 int node_num;
 int set_root();
 
 int main_node(void* arg){
+	//
+  system("ip address show");
+	//
 	struct node_entry* this_node_entry = &(config->entries[node_num]);
+	sethostname(this_node_entry->hostname, strlen(this_node_entry->hostname));
 	read_setdevs_pipe();
 
 	netdevs_set_node(this_node_entry, node_num);
@@ -22,8 +27,14 @@ int main_node(void* arg){
 }
 
 int main_userns(void* arg){
+	//
+	//sleep(20);
+	//printf("main_userns's pid %d\n", getpid());
+	//
 	read_euid_pipe();
-
+	//
+	system("whoami");
+	//
 	pid_t* node_pids = malloc(config->node_cnt * sizeof(pid_t));
 	for (int i = 0; i < config->node_cnt; i++){
 		node_num = i;
@@ -40,8 +51,9 @@ int main_userns(void* arg){
 
 int main(int c, char* argv[]){
 	FILE *fp = fopen(argv[1], "r");
+	init_pipes();
 	conf_alloc(&config, fp);
-
+	print_conf_file(config);
 	pid_t ns_pid = clone(main_userns,
 											child_stack + STACK_SIZE,
 											CLONE_NEWUSER | CLONE_NEWNET | CLONE_NEWNS | SIGCHLD,
@@ -54,6 +66,7 @@ int main(int c, char* argv[]){
 	waitpid(ns_pid, &status, 0);
 	if (status != 0)
 		exit(1);
+	printf("hello\n");
 	exit(0);
 }
 

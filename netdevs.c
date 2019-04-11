@@ -2,8 +2,14 @@
 
 int netdevs_set_devs(int node_cnt, pid_t* node_pids){
   char* bridge_name = netdevs_set_bridge();
+  //
+  //system("ip link");
+  //
   for (int i = 0; i < node_cnt; i++)
     netdevs_set_veth(i, node_pids[i], bridge_name);
+  //
+  system("ip address show");
+  //
   free(bridge_name);
   return 1;
 }
@@ -25,11 +31,11 @@ int netdevs_set_node(struct node_entry* entry, int num){
 }
 
 char* netdevs_set_bridge(){
-  system("ip link add name netdevs_bridge_name type bridge");
-	system("ip addr add 10.0.0.1/16 dev netdevs_bridge_name");
-	system("ip link set netdevs_bridge_name up");
+  system("ip link add name mybr type bridge");
+	system("ip addr add 10.0.0.1/16 dev mybr");
+	system("ip link set mybr up");
   char* bridge_name = malloc(BUFF_SIZE * sizeof(char));
-  strcpy(bridge_name, "netdevs_bridge_name");
+  strcpy(bridge_name, "mybr");
   return bridge_name;
 }
 

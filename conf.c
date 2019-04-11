@@ -58,6 +58,16 @@ char* conf_node_task_arg(struct node_entry* entry){
   return argv;
 }
 
+void print_conf_file(struct conf_file* conf){
+  printf("%d\n", conf->node_cnt);
+  for (int i = 0; i < conf->node_cnt; i++){
+    printf("%s\n", conf->entries[i].ip_addr);
+    printf("%s\n", conf->entries[i].hostname);
+    printf("%s\n", conf->entries[i].task);
+  }
+  printf("%s\n", conf->reaper);
+}
+
 ssize_t getline_no_nl(char **lineptr, size_t *n, FILE *stream){
   ssize_t ret = getline(lineptr, n, stream);
   if ((*lineptr)[ret - 1] == '\n') {
