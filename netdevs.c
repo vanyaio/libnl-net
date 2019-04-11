@@ -8,7 +8,6 @@ int netdevs_set_devs(int node_cnt, pid_t* node_pids){
   return 1;
 }
 
-
 int netdevs_set_node(struct node_entry* entry, int num){
   char* name = get_veth_name(num, IN_NS);
 	struct rtnl_link* veth = my_link_get_by_name(name);
@@ -37,7 +36,7 @@ char* netdevs_set_bridge(){
 int netdevs_set_veth(int num, pid_t pid, char* master_bridge){
   char* name = get_veth_name(num, 0);//weird bug with IN_NS not working
   char* name_ns = get_veth_name(num, 1);
-  rtnl_link_veth_add(get_route_socket(), name, name_ns, pid[num]);
+  rtnl_link_veth_add(get_route_socket(), name, name_ns, pid);
 
   struct rtnl_link* veth = my_link_get_by_name(name);
   if (veth == NULL)

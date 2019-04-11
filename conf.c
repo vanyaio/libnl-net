@@ -34,7 +34,7 @@ int conf_alloc(struct conf_file** conf, FILE* fp){
 }
 
 char* conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
-  char* argv[];
+  char** argv;
   argv = malloc((conf->node_cnt + 2) * sizeof(char*));
   argv[0] = conf->reaper;
 
@@ -49,13 +49,21 @@ char* conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
 }
 
 char* conf_node_task_arg(struct node_entry* entry){
-  char* argv[];
+  char** argv;
   argv = malloc(4 * sizeof(char*));
   argv[0] = entry->task;
   argv[1] = entry->ip_addr;
   argv[2] = entry->hostname;
   argv[3] = NULL;
   return argv;
+}
+
+ssize_t getline_no_nl(char **lineptr, size_t *n, FILE *stream){
+  ssize_t ret = getline(lineptr, n, stream);
+  if ((*lineptr)[ret - 1] == '\n') {
+     (*lineptr)[ret - 1] = '\0';
+  }
+  return ret;
 }
 
 
