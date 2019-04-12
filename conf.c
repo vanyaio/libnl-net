@@ -80,7 +80,41 @@ ssize_t getline_no_nl(char **lineptr, size_t *n, FILE *stream){
   return ret;
 }
 
+int conf_set_etc_hosts(struct conf_file* conf){
+  system("rm -rf tmp");
+  system("mkdir tmp");
+  system("cp -r /etc/* tmp");
+  system("mount --bind tmp /etc");
 
+  system("echo \"127.0.0.1 localhost\" > /etc/hosts");
+  for (int i = 0; i < conf->node_cnt; i++){
+    char buff[BUFF_SIZE];
+    strcpy(buff, "echo \"");
+    char* addr_no_mask = del_mask(conf->entries[i].ip_addr);
+
+    strcat(buff, addr_no_mask);
+    strcat(buff, " ");
+    strcat(buff, conf->entries[i].hostname);
+    strcat(buff, "\" >> /etc/hosts");
+    system(buff);
+
+    free(addr_no_mask);
+  }
+
+  return 1;
+}
+
+char* del_mask(char* addr){
+  char* buff = malloc(BUFF_SIZE * sizeof(char));
+  char* start = buff;
+  while ((*addr) != '/'){
+    *buff = *addr;
+    buff++;
+    addr++;
+  }
+  *buff = '\0';
+  return start;
+}
 
 
 

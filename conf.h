@@ -22,6 +22,8 @@ struct conf_file{
 int conf_alloc(struct conf_file** conf, FILE* fp);
 char** conf_reaper_arg(struct conf_file* conf, pid_t* node_pids);
 char* conf_node_task_arg(struct node_entry* entry);
+int conf_set_etc_hosts(struct conf_file* conf);
+char* del_mask(char* addr);
 void print_conf_file(struct conf_file* conf);
 ssize_t getline_no_nl(char **lineptr, size_t *n, FILE *stream);
 

@@ -1,11 +1,11 @@
 3
 10.0.0.2/16
 curl
-apps/curl
+./curl
 10.0.0.3/16
 serv1
-apps/serv
+./serv
 10.0.0.4/16
 serv2
-apps/serv
-./stdreaper
+./serv
+../stdreaper

@@ -5,8 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sched.h>
-//gcc -g -O0 link.c conf.c pipe.c netdevs.c main.c -o main $(pkg-config --cflags --libs libnl-3.0) -Wl,-rpath=/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -l:libnl-route-3.so.200
-//gdb --args main apps/config
+
 struct conf_file* config;
 int node_num;
 int set_root();
@@ -18,17 +17,18 @@ int main_node(void* arg){
 
 	netdevs_set_node(this_node_entry, node_num);
 	write_set_node_pipe();
-	//
-  //system("ip address show");
-	//
+
 	read_exec_node_pipe();
 	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry));
+	//
 	if (err)
 		printf("error!!! %s\n", strerror(errno));
 }
 
 int main_userns(void* arg){
 	read_euid_pipe();
+	conf_set_etc_hosts(config);
+
 	pid_t* node_pids = malloc(config->node_cnt * sizeof(pid_t));
 	for (int i = 0; i < config->node_cnt; i++){
 		node_num = i;
@@ -41,11 +41,13 @@ int main_userns(void* arg){
 	read_set_node_pipe(config->node_cnt);
 	write_exec_node_pipe(config->node_cnt);
 	int err = execvp(config->reaper, conf_reaper_arg(config, node_pids));
+	//
 	if (err == -1)
 		printf("error! main_userns!! %s\n", strerror(errno));
 }
 
 int main(int c, char* argv[]){
+	chdir(argv[2]);
 	FILE *fp = fopen(argv[1], "r");
 	init_pipes();
 	conf_alloc(&config, fp);
@@ -64,8 +66,6 @@ int main(int c, char* argv[]){
 	printf("main exits with 0\n");
 	exit(0);
 }
-
-
 
 
 int set_root(pid_t ns_pid){
