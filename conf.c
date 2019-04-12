@@ -33,7 +33,7 @@ int conf_alloc(struct conf_file** conf, FILE* fp){
   return 0;
 }
 
-char* conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
+char** conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
   char** argv;
   argv = malloc((conf->node_cnt + 2) * sizeof(char*));
   argv[0] = conf->reaper;
@@ -41,7 +41,11 @@ char* conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
   char* buff[conf->node_cnt];
   for (int i = 1; i <= conf->node_cnt; i++){
     buff[i-1] = malloc(BUFF_SIZE * sizeof(char));
-    argv[i] = sprintf(buff[i-1], "%d", node_pids[i-1]);
+    sprintf(buff[i-1], "%d", node_pids[i-1]);
+    argv[i] = buff[i-1];
+    //
+    //printf("%s\n", argv[i]);
+    //
   }
 
   argv[conf->node_cnt + 1] = NULL;

@@ -8,7 +8,7 @@ int netdevs_set_devs(int node_cnt, pid_t* node_pids){
   for (int i = 0; i < node_cnt; i++)
     netdevs_set_veth(i, node_pids[i], bridge_name);
   //
-  system("ip address show");
+  //system("ip address show");
   //
   free(bridge_name);
   return 1;

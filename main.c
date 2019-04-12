@@ -12,29 +12,23 @@ int node_num;
 int set_root();
 
 int main_node(void* arg){
-	//
-  system("ip address show");
-	//
 	struct node_entry* this_node_entry = &(config->entries[node_num]);
 	sethostname(this_node_entry->hostname, strlen(this_node_entry->hostname));
 	read_setdevs_pipe();
 
 	netdevs_set_node(this_node_entry, node_num);
 	write_set_node_pipe();
-
+	//
+  //system("ip address show");
+	//
 	read_exec_node_pipe();
-	execvp(this_node_entry->task, conf_node_task_arg(this_node_entry));
+	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry));
+	if (err)
+		printf("error!!! %s\n", strerror(errno));
 }
 
 int main_userns(void* arg){
-	//
-	//sleep(20);
-	//printf("main_userns's pid %d\n", getpid());
-	//
 	read_euid_pipe();
-	//
-	system("whoami");
-	//
 	pid_t* node_pids = malloc(config->node_cnt * sizeof(pid_t));
 	for (int i = 0; i < config->node_cnt; i++){
 		node_num = i;
@@ -42,18 +36,19 @@ int main_userns(void* arg){
 	}
 
 	netdevs_set_devs(config->node_cnt, node_pids);
-	write_setdevs_pipe();
+	write_setdevs_pipe(config->node_cnt);
 
-	read_set_node_pipe();
-	write_exec_node_pipe();
-	execvp(config->reaper, conf_reaper_arg(config, node_pids));
+	read_set_node_pipe(config->node_cnt);
+	write_exec_node_pipe(config->node_cnt);
+	int err = execvp(config->reaper, conf_reaper_arg(config, node_pids));
+	if (err == -1)
+		printf("error! main_userns!! %s\n", strerror(errno));
 }
 
 int main(int c, char* argv[]){
 	FILE *fp = fopen(argv[1], "r");
 	init_pipes();
 	conf_alloc(&config, fp);
-	print_conf_file(config);
 	pid_t ns_pid = clone(main_userns,
 											child_stack + STACK_SIZE,
 											CLONE_NEWUSER | CLONE_NEWNET | CLONE_NEWNS | SIGCHLD,
@@ -63,10 +58,10 @@ int main(int c, char* argv[]){
 	write_euid_pipe();
 
 	int status;
-	waitpid(ns_pid, &status, 0);
+	pid_t ret = waitpid(ns_pid, &status, 0);
 	if (status != 0)
 		exit(1);
-	printf("hello\n");
+	printf("main exits with 0\n");
 	exit(0);
 }
 
