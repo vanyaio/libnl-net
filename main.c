@@ -20,7 +20,7 @@ int main_node(void* arg){
 	write_set_node_pipe();
 
 	read_exec_node_pipe();
-	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry, conf_path));
+	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry, conf_path, node_num));
 	//
 	if (err)
 		printf("error!!! %s\n", strerror(errno));
