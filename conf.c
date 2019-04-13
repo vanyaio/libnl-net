@@ -52,13 +52,14 @@ char** conf_reaper_arg(struct conf_file* conf, pid_t* node_pids){
   return argv;
 }
 
-char* conf_node_task_arg(struct node_entry* entry){
+char* conf_node_task_arg(struct node_entry* entry, char* config_path){
   char** argv;
   argv = malloc(4 * sizeof(char*));
   argv[0] = entry->task;
   argv[1] = entry->ip_addr;
   argv[2] = entry->hostname;
-  argv[3] = NULL;
+  argv[3] = config_path;
+  argv[4] = NULL;
   return argv;
 }
 

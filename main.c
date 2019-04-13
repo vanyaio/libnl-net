@@ -7,6 +7,7 @@
 #include <sched.h>
 
 struct conf_file* config;
+char* conf_path;
 int node_num;
 int set_root();
 
@@ -19,7 +20,7 @@ int main_node(void* arg){
 	write_set_node_pipe();
 
 	read_exec_node_pipe();
-	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry));
+	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry, conf_path));
 	//
 	if (err)
 		printf("error!!! %s\n", strerror(errno));
@@ -48,6 +49,7 @@ int main_userns(void* arg){
 
 int main(int c, char* argv[]){
 	chdir(argv[2]);
+	conf_path = argv[1];
 	FILE *fp = fopen(argv[1], "r");
 	init_pipes();
 	conf_alloc(&config, fp);
