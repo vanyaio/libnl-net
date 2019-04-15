@@ -1,0 +1,11 @@
+3
+10.0.0.2/16
+master
+./master_wrapper
+10.0.0.3/16
+slave1
+./slave_wrapper
+10.0.0.4/16
+slave2
+./slave_wrapper
+../../stdreaper
