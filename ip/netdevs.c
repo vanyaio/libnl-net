@@ -6,6 +6,7 @@ int netdevs_set_devs(int node_cnt, pid_t* node_pids){
   for (int i = 0; i < node_cnt; i++)
     netdevs_set_veth(i, node_pids[i], bridge_name);
 
+  system("ip link");
   free(bridge_name);
   return 1;
 }
@@ -72,7 +73,13 @@ int netdevs_set_veth(int num, pid_t pid, char* master_bridge){
   strcpy(buff, "ip link set ");
   strcat(buff, name_ns);
   strcat(buff, " netns ");
-  strcat(buff, name);
+  strcat(buff, ns);
+  //
+
+  //system("ls /var/run/netns");
+  printf("%s\n", buff);
+
+  //
   system(buff);
   //ip link set myveth1 up
   strcpy(buff, "ip link set ");
@@ -132,8 +139,8 @@ char* get_veth_addr(int i){
 char* get_ns_name(int num){
   char* buff = malloc(BUFF_SIZE);
   char num_str[BUFF_SIZE];
-  sprintf(num_str, "%d", num);
-  strcpy(buff, "namespace");
+  sprintf(num_str, "%d", num+1);
+  strcpy(buff, "ipns");
   strcat(buff, num_str);
   return buff;
 }

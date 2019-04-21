@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sched.h>
+#include <sys/mount.h>
 
 struct conf_file* config;
 char* conf_path;
@@ -32,25 +33,59 @@ int main_userns(void* arg){
 	conf_set_etc_hosts(config);
 	mount_var_run();
 
+	//if (fork()==0)
+		//system("/bin/bash");
 	pid_t* node_pids = malloc(config->node_cnt * sizeof(pid_t));
 	for (int i = 0; i < config->node_cnt; i++){
 		node_num = i;
 		node_pids[i] = clone(main_node, child_stack + STACK_SIZE,  CLONE_NEWNET | CLONE_NEWUTS | SIGCHLD, NULL);
+
+		printf("pid: %d\n", node_pids[i]);
 		if (mount_ns){
 			char* ns_name = get_ns_name(node_num);
-			char buff[BUFF_SIZE];
-			strcpy(buff, "python3 /home/ivan/Desktop/amcp/libnl/ip/mount_ns.py ");
-			strcat(buff, ns_name);
-			strcat(buff, " ");
+			char buff1[BUFF_SIZE];
+			strcpy(buff1, "/var/run/netns/");
+			strcat(buff1, ns_name);
 
 			char pid_str[BUFF_SIZE];
-			sprintf(pid_str, "%d", i + 1);
-			strcat(buff, pid_str);
+			sprintf(pid_str, "%ld", node_pids[i]);
+			char buff2[BUFF_SIZE];
+			strcpy(buff2, "/proc/");
+			strcat(buff2, pid_str);
+			strcat(buff2, "/ns");
+			strcat(buff2, "/net");
+			//
+			char buff4[BUFF_SIZE];
+			strcpy(buff4, "ls -la ");
+			strcat(buff4, buff2);
+			system(buff4);
+			//
 
-			system(buff);
+
+
+			char buff3[BUFF_SIZE];
+			strcpy(buff3, "touch ");
+			strcat(buff3, buff1);
+			system(buff3);
+			//
+			strcpy(buff4, "ls -la ");
+			strcat(buff4, buff1);
+			system(buff4);
+			//
+			//system("ls -la /var/run/netns");
+			printf("%s\n", buff2);
+			printf("%s\n", buff1);
+		//	mount("", "/var/run/netns", NULL, MS_REC|MS_SHARED, NULL);
+			mount(buff2, buff1, NULL, MS_BIND, NULL);
+			printf("code: %d\n\n\n\n\n", errno);
+			//printf("Oh dear, something went wrong with read()! %s\n", strerror(errno));
+			//printf("code: %d\n", mount(buff2, buff1, 0x445bf5, MS_BIND, NULL));
+			//mount("/proc/self/ns/net", "/var/run/netns/ns2", 0x445bf5, MS_BIND, NULL)
 
 		}
 	}
+	//if (fork()==0)
+		//system("/bin/bash");
 
 	netdevs_set_devs(config->node_cnt, node_pids);
 	write_setdevs_pipe(config->node_cnt);
@@ -93,6 +128,7 @@ int mount_var_run(){
   system("mkdir tmp1");
   system("cp -r /var/run/* tmp1");
   system("mount --bind tmp1 /var/run");
+	system("rm -rf /var/run/netns");
 	system("mkdir /var/run/netns");
 
   return 1;
