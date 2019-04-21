@@ -10,6 +10,7 @@ struct conf_file* config;
 char* conf_path;
 int node_num;
 int set_root();
+int mount_ns = 0;
 
 int main_node(void* arg){
 	struct node_entry* this_node_entry = &(config->entries[node_num]);
@@ -21,7 +22,7 @@ int main_node(void* arg){
 
 	read_exec_node_pipe();
 	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry, conf_path, node_num));
-	//
+
 	if (err)
 		printf("error!!! %s\n", strerror(errno));
 }
@@ -29,11 +30,26 @@ int main_node(void* arg){
 int main_userns(void* arg){
 	read_euid_pipe();
 	conf_set_etc_hosts(config);
+	mount_var_run();
 
 	pid_t* node_pids = malloc(config->node_cnt * sizeof(pid_t));
 	for (int i = 0; i < config->node_cnt; i++){
 		node_num = i;
 		node_pids[i] = clone(main_node, child_stack + STACK_SIZE,  CLONE_NEWNET | CLONE_NEWUTS | SIGCHLD, NULL);
+		if (mount_ns){
+			char* ns_name = get_ns_name(node_num);
+			char buff[BUFF_SIZE];
+			strcpy(buff, "python3 /home/ivan/Desktop/amcp/libnl/ip/mount_ns.py ");
+			strcat(buff, ns_name);
+			strcat(buff, " ");
+
+			char pid_str[BUFF_SIZE];
+			sprintf(pid_str, "%d", i + 1);
+			strcat(buff, pid_str);
+
+			system(buff);
+
+		}
 	}
 
 	netdevs_set_devs(config->node_cnt, node_pids);
@@ -42,12 +58,15 @@ int main_userns(void* arg){
 	read_set_node_pipe(config->node_cnt);
 	write_exec_node_pipe(config->node_cnt);
 	int err = execvp(config->reaper, conf_reaper_arg(config, node_pids));
-	//
+
 	if (err == -1)
 		printf("error! main_userns!! %s\n", strerror(errno));
 }
 
 int main(int c, char* argv[]){
+	if (c > 3)
+		mount_ns = 1;
+
 	chdir(argv[2]);
 	conf_path = argv[1];
 	FILE *fp = fopen(argv[1], "r");
@@ -69,7 +88,15 @@ int main(int c, char* argv[]){
 	exit(0);
 }
 
+int mount_var_run(){
+	system("rm -rf tmp1");
+  system("mkdir tmp1");
+  system("cp -r /var/run/* tmp1");
+  system("mount --bind tmp1 /var/run");
+	system("mkdir /var/run/netns");
 
+  return 1;
+}
 int set_root(pid_t ns_pid){
 	char pid_str[BUFF_SIZE];
 	sprintf(pid_str, "%d", ns_pid);

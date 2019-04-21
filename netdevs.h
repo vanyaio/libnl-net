@@ -13,5 +13,6 @@ int netdevs_set_veth(int num, pid_t pid, char* master_bridge);
 
 char* get_veth_name(int i, int in_ns);
 char* get_veth_addr(int i);
+char* get_ns_name(int num);
 
 #endif
