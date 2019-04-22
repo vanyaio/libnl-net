@@ -14,26 +14,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <netlink/netlink.h>
-#include <netlink/cache.h>
-#include <netlink/route/link.h>
-#include <netlink/socket.h>
-
-#include <netlink/route/link/veth.h>
-
-#include <netlink/types.h>
-
 #include <sys/ioctl.h>
 #include <net/if.h>
-enum {
-	IF_OPER_UNKNOWN,
-	IF_OPER_NOTPRESENT,
-	IF_OPER_DOWN,
-	IF_OPER_LOWERLAYERDOWN,
-	IF_OPER_TESTING,
-	IF_OPER_DORMANT,
-	IF_OPER_UP,
-};
+
 
 char* concat(int count, ...)
 {

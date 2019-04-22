@@ -14,16 +14,18 @@ int set_root();
 int mount_ns = 0;
 
 int main_node(void* arg){
+	printf("%s\n", "hello");
 	struct node_entry* this_node_entry = &(config->entries[node_num]);
 	sethostname(this_node_entry->hostname, strlen(this_node_entry->hostname));
 	read_setdevs_pipe();
-
+	printf("%s\n", "hello1");
 	netdevs_set_node(this_node_entry, node_num);
 	write_set_node_pipe();
-
+	printf("%s\n", "hello2");
 	read_exec_node_pipe();
+	printf("%s\n", "hello3");
 	int err = execvp(this_node_entry->task, conf_node_task_arg(this_node_entry, conf_path, node_num));
-
+	printf("%s\n", "hello4");
 	if (err)
 		printf("error!!! %s\n", strerror(errno));
 }
@@ -71,29 +73,25 @@ int main_userns(void* arg){
 			strcpy(buff4, "ls -la ");
 			strcat(buff4, buff1);
 			system(buff4);
-			//
-			//system("ls -la /var/run/netns");
+
 			printf("%s\n", buff2);
 			printf("%s\n", buff1);
-		//	mount("", "/var/run/netns", NULL, MS_REC|MS_SHARED, NULL);
+
 			mount(buff2, buff1, NULL, MS_BIND, NULL);
 			printf("code: %d\n\n\n\n\n", errno);
-			//printf("Oh dear, something went wrong with read()! %s\n", strerror(errno));
-			//printf("code: %d\n", mount(buff2, buff1, 0x445bf5, MS_BIND, NULL));
-			//mount("/proc/self/ns/net", "/var/run/netns/ns2", 0x445bf5, MS_BIND, NULL)
 
 		}
 	}
-	//if (fork()==0)
-		//system("/bin/bash");
-
+	printf("%s\n", "hello kek");
 	netdevs_set_devs(config->node_cnt, node_pids);
+	printf("%s\n", "hello keks1");
 	write_setdevs_pipe(config->node_cnt);
-
+	printf("%s\n", "hello kek1");
 	read_set_node_pipe(config->node_cnt);
 	write_exec_node_pipe(config->node_cnt);
+	printf("%s\n", "hello kek2");
 	int err = execvp(config->reaper, conf_reaper_arg(config, node_pids));
-
+	printf("%s\n", "hello kek3");
 	if (err == -1)
 		printf("error! main_userns!! %s\n", strerror(errno));
 }
@@ -135,10 +133,18 @@ int mount_var_run(){
 }
 int set_root(pid_t ns_pid){
 	char pid_str[BUFF_SIZE];
-	sprintf(pid_str, "%d", ns_pid);
+	sprintf(pid_str, "%ld", ns_pid);
 	char euid_str[BUFF_SIZE];
 	sprintf(euid_str, "%d", geteuid());
+	/*
 	char* echo = concat(5, "echo \'0 ", euid_str, " 1\' > /proc/", pid_str, "/uid_map");
+	*/
+	char echo[BUFF_SIZE];
+	strcpy(echo, "echo '0 ");
+	strcat(echo, euid_str);
+	strcat(echo, " 1' > /proc/");
+	strcat(echo, pid_str);
+	strcat(echo, "/uid_map");
 	system(echo);
-	free(echo);
+	//sfree(echo);
 }

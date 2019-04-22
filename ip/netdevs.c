@@ -126,15 +126,28 @@ char* get_veth_name(int i, int in_ns){
 	char i_str[BUFF_SIZE];
 	sprintf(i_str, "%d", i + 1);
 
-	if (!in_ns)
-		return concat(2, "myveth", i_str);
+  char* ret = malloc(BUFF_SIZE);
 
-	return concat(2, "myveth_ns", i_str);
+	if (!in_ns){
+		//return concat(2, "myveth", i_str);
+    strcpy(ret, "myveth");
+    strcat(ret, i_str);
+    return ret;
+  }
+  strcpy(ret, "myveth_ns");
+  strcat(ret, i_str);
+  return ret;
+	//return concat(2, "myveth_ns", i_str);
 }
 char* get_veth_addr(int i){
 	char i_str[BUFF_SIZE];
 	sprintf(i_str, "%d", i + 2);
-	return concat(3, "10.1.0.", i_str, "/16");
+	//return concat(3, "10.1.0.", i_str, "/16");
+  char* ret = malloc(BUFF_SIZE);
+  strcpy(ret, "10.1.0.");
+  strcat(ret, i_str);
+  strcat(ret, "/16");
+  return ret;
 }
 char* get_ns_name(int num){
   char* buff = malloc(BUFF_SIZE);
