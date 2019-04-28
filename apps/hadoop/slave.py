@@ -1,6 +1,7 @@
 import os
 import sys
 
+'''
 slave_homes = "/home/ivan/slave-homes"
 hadoop_home = "/home/ivan/hadoop"
 num = sys.argv[4]
@@ -28,10 +29,59 @@ while True:
     for elem in arr:
         if (elem[1] != '--'):
             daemons += 1
-    if (daemons >= 4):
+    if (daemons >= 5):
         break
 os.system("rm " + is_master_set)
 
 slave_log = "slove_log" + str(num)
 os.system(hadoop_home + "/bin/hadoop datanode " + "&>" + slave_log + "_dn &")
 os.system(hadoop_home + "/bin/yarn nodemanager " + "&>" + slave_log + "_nn &")
+'''
+
+hadoop_home = "/home/ivan/hadoop"
+num = sys.argv[4]
+mount_home = "home" + str(num)
+
+os.system("rm -rf " + mount_home)
+os.system("mkdir " + mount_home)
+os.system("cp -r " + hadoop_home + "/* " + mount_home)
+os.system("rm -rf " + mount_home + "/data/datanode/*")
+os.system("rm -rf " + mount_home + "/data/namenode/*")
+os.system("mount --bind " + mount_home + " " + hadoop_home)
+
+is_master_set = "is_master_set" + num
+os.system("touch " + is_master_set)
+while True:
+    os.system("jps > " + is_master_set)
+    file = open(is_master_set, "r")
+    arr = [line.split() for line in file]
+    daemons = 0
+    for elem in arr:
+        if (elem[1] != '--'):
+            daemons += 1
+    if (daemons >= 5):
+        break
+os.system("rm " + is_master_set)
+slave_log = "slove_log" + str(num)
+os.system(hadoop_home + "/bin/hadoop datanode " + "&>" + slave_log + "_dn &")
+os.system(hadoop_home + "/bin/yarn nodemanager " + "&>" + slave_log + "_nn &")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#

@@ -33,7 +33,7 @@ int main_userns(void* arg){
 	pid_t* node_pids = malloc(config->node_cnt * sizeof(pid_t));
 	for (int i = 0; i < config->node_cnt; i++){
 		node_num = i;
-		node_pids[i] = clone(main_node, child_stack + STACK_SIZE,  CLONE_NEWNET | CLONE_NEWUTS | SIGCHLD, NULL);
+		node_pids[i] = clone(main_node, child_stack + STACK_SIZE,  CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWNS | SIGCHLD, NULL);
 	}
 
 	netdevs_set_devs(config->node_cnt, node_pids);
